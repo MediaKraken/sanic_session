@@ -1,7 +1,7 @@
 import time
 import datetime
 import abc
-import ujson
+import json
 import uuid
 from sanic_session.utils import CallbackDict
 
@@ -111,7 +111,7 @@ class BaseSessionInterface(metaclass=abc.ABCMeta):
             val = await self._get_value(self.prefix, sid)
 
             if val is not None:
-                data = ujson.loads(val)
+                data = json.loads(val)
                 session_dict = SessionDict(data, sid=sid)
             else:
                 session_dict = SessionDict(sid=sid)
@@ -144,6 +144,6 @@ class BaseSessionInterface(metaclass=abc.ABCMeta):
                 self._delete_cookie(request, response)
             return
 
-        val = ujson.dumps(dict(request[self.session_name]))
+        val = json.dumps(dict(request[self.session_name]))
         await self._set_value(key, val)
         self._set_cookie_props(request, response)

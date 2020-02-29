@@ -4,7 +4,7 @@ from sanic.response import text
 from sanic_session.redis import RedisSessionInterface
 import pytest
 import uuid
-import ujson
+import json
 
 from unittest.mock import Mock
 
@@ -42,7 +42,7 @@ async def get_interface_and_request(mocker, redis_getter, data=None):
     data = data or {}
 
     redis_connection = mock_redis()
-    redis_connection.get = mock_coroutine(ujson.dumps(data))
+    redis_connection.get = mock_coroutine(json.dumps(data))
     redis_getter = mock_coroutine(redis_connection)
 
     session_interface = RedisSessionInterface(redis_getter, cookie_name=COOKIE_NAME)
@@ -77,7 +77,7 @@ async def test_should_return_data_from_redis(mocker, mock_dict, mock_redis):
     data = {"foo": "bar"}
 
     redis_connection = mock_redis()
-    redis_connection.get = mock_coroutine(ujson.dumps(data))
+    redis_connection.get = mock_coroutine(json.dumps(data))
     redis_getter = mock_coroutine(redis_connection)
 
     session_interface = RedisSessionInterface(redis_getter, cookie_name=COOKIE_NAME)
@@ -100,7 +100,7 @@ async def test_should_use_prefix_in_redis_key(mocker, mock_dict, mock_redis):
     request.cookies = COOKIES
 
     redis_connection = mock_redis
-    redis_connection.get = mock_coroutine(ujson.dumps(data))
+    redis_connection.get = mock_coroutine(json.dumps(data))
     redis_getter = mock_coroutine(redis_connection)
 
     session_interface = RedisSessionInterface(redis_getter, cookie_name=COOKIE_NAME, prefix=prefix)
@@ -190,7 +190,7 @@ async def test_should_save_in_redis_for_time_specified(mock_dict, mock_redis):
     request = mock_dict()
     request.cookies = COOKIES
     redis_connection = mock_redis
-    redis_connection.get = mock_coroutine(ujson.dumps({"foo": "bar"}))
+    redis_connection.get = mock_coroutine(json.dumps({"foo": "bar"}))
     redis_connection.setex = mock_coroutine()
     redis_getter = mock_coroutine(redis_connection)
     response = text("foo")
@@ -202,7 +202,7 @@ async def test_should_save_in_redis_for_time_specified(mock_dict, mock_redis):
     request["session"]["foo"] = "baz"
     await session_interface.save(request, response)
 
-    redis_connection.setex.assert_called_with("session:{}".format(SID), 2592000, ujson.dumps(request["session"]))
+    redis_connection.setex.assert_called_with("session:{}".format(SID), 2592000, json.dumps(request["session"]))
 
 
 @pytest.mark.asyncio
@@ -210,7 +210,7 @@ async def test_should_reset_cookie_expiry(mocker, mock_dict, mock_redis):
     request = mock_dict()
     request.cookies = COOKIES
     redis_connection = mock_redis
-    redis_connection.get = mock_coroutine(ujson.dumps({"foo": "bar"}))
+    redis_connection.get = mock_coroutine(json.dumps({"foo": "bar"}))
     redis_connection.setex = mock_coroutine()
     redis_getter = mock_coroutine(redis_connection)
     response = text("foo")
@@ -233,7 +233,7 @@ async def test_sessioncookie_should_omit_request_headers(mocker, mock_dict):
     request = mock_dict()
     request.cookies = COOKIES
     redis_connection = mock_redis
-    redis_connection.get = mock_coroutine(ujson.dumps({"foo": "bar"}))
+    redis_connection.get = mock_coroutine(json.dumps({"foo": "bar"}))
     redis_connection.delete = mock_coroutine()
     redis_connection.setex = mock_coroutine()
     redis_getter = mock_coroutine(redis_connection)
@@ -254,7 +254,7 @@ async def test_sessioncookie_delete_has_expiration_headers(mocker, mock_dict):
     request = mock_dict()
     request.cookies = COOKIES
     redis_connection = mock_redis
-    redis_connection.get = mock_coroutine(ujson.dumps({"foo": "bar"}))
+    redis_connection.get = mock_coroutine(json.dumps({"foo": "bar"}))
     redis_connection.delete = mock_coroutine()
     redis_connection.setex = mock_coroutine()
     redis_getter = mock_coroutine(redis_connection)
