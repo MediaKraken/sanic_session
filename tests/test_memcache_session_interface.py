@@ -4,7 +4,7 @@ from sanic.response import text
 from sanic_session.memcache import MemcacheSessionInterface
 import pytest
 import uuid
-import ujson
+import json
 
 from unittest.mock import Mock
 
@@ -42,7 +42,7 @@ async def get_interface_and_request(mocker, memcache_connection, data=None):
     data = data or {}
 
     memcache_connection = mock_memcache()
-    memcache_connection.get = mock_coroutine(ujson.dumps(data))
+    memcache_connection.get = mock_coroutine(json.dumps(data))
 
     session_interface = MemcacheSessionInterface(memcache_connection, cookie_name=COOKIE_NAME)
     await session_interface.open(request)
@@ -75,7 +75,7 @@ async def test_should_return_data_from_memcache(mocker, mock_dict, mock_memcache
     data = {"foo": "bar"}
 
     memcache_connection = mock_memcache()
-    memcache_connection.get = mock_coroutine(ujson.dumps(data).encode())
+    memcache_connection.get = mock_coroutine(json.dumps(data).encode())
 
     session_interface = MemcacheSessionInterface(memcache_connection, cookie_name=COOKIE_NAME)
     session = await session_interface.open(request)
@@ -97,7 +97,7 @@ async def test_should_use_prefix_in_memcache_key(mocker, mock_dict, mock_memcach
     request.cookies = COOKIES
 
     memcache_connection = mock_memcache
-    memcache_connection.get = mock_coroutine(ujson.dumps(data).encode())
+    memcache_connection.get = mock_coroutine(json.dumps(data).encode())
 
     session_interface = MemcacheSessionInterface(memcache_connection, cookie_name=COOKIE_NAME, prefix=prefix)
     await session_interface.open(request)
@@ -182,7 +182,7 @@ async def test_should_save_in_memcache_for_time_specified(mock_dict, mock_memcac
     request = mock_dict()
     request.cookies = COOKIES
     memcache_connection = mock_memcache
-    memcache_connection.get = mock_coroutine(ujson.dumps({"foo": "bar"}).encode())
+    memcache_connection.get = mock_coroutine(json.dumps({"foo": "bar"}).encode())
     memcache_connection.set = mock_coroutine()
     response = text("foo")
 
@@ -194,7 +194,7 @@ async def test_should_save_in_memcache_for_time_specified(mock_dict, mock_memcac
     await session_interface.save(request, response)
 
     memcache_connection.set.assert_called_with(
-        "session:{}".format(SID).encode(), ujson.dumps(request["session"]).encode(), exptime=2592000
+        "session:{}".format(SID).encode(), json.dumps(request["session"]).encode(), exptime=2592000
     )
 
 
@@ -203,7 +203,7 @@ async def test_should_reset_cookie_expiry(mocker, mock_dict, mock_memcache):
     request = mock_dict()
     request.cookies = COOKIES
     memcache_connection = mock_memcache
-    memcache_connection.get = mock_coroutine(ujson.dumps({"foo": "bar"}).encode())
+    memcache_connection.get = mock_coroutine(json.dumps({"foo": "bar"}).encode())
     memcache_connection.set = mock_coroutine()
     response = text("foo")
     mocker.patch("time.time")
@@ -225,7 +225,7 @@ async def test_sessioncookie_should_omit_request_headers(mocker, mock_dict, mock
     request = mock_dict()
     request.cookies = COOKIES
     memcache_connection = mock_memcache
-    memcache_connection.get = mock_coroutine(ujson.dumps({"foo": "bar"}).encode())
+    memcache_connection.get = mock_coroutine(json.dumps({"foo": "bar"}).encode())
     memcache_connection.set = mock_coroutine()
     memcache_connection.delete = mock_coroutine()
     response = text("foo")
@@ -244,7 +244,7 @@ async def test_sessioncookie_delete_has_expiration_headers(mocker, mock_dict, mo
     request = mock_dict()
     request.cookies = COOKIES
     memcache_connection = mock_memcache
-    memcache_connection.get = mock_coroutine(ujson.dumps({"foo": "bar"}).encode())
+    memcache_connection.get = mock_coroutine(json.dumps({"foo": "bar"}).encode())
     memcache_connection.set = mock_coroutine()
     memcache_connection.delete = mock_coroutine()
     response = text("foo")
